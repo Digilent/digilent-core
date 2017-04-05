@@ -1,0 +1,581 @@
+/************************************************************************/
+/*																		*/
+/*	Board_Defs.h --	Board Customization for Digilent chipKIT Uno32		*/
+/*																		*/
+/************************************************************************/
+/*	Author: Gene Apperson												*/
+/*	Copyright 2011, Digilent. All rights reserved						*/
+/************************************************************************/
+/*  File Description:													*/
+/*																		*/
+/* This file contains the board specific declartions and data structure	*/
+/* to customize the chipKIT MPIDE for use with the Digilent chipKIT		*/
+/* Uno32 board.															*/
+/*																		*/
+/* This code is based on earlier work:									*/
+/*		Copyright (c) 2010, 2011 by Mark Sproul							*/
+/*		Copyright (c) 2005, 2006 by David A. Mellis						*/
+/*																		*/
+/************************************************************************/
+/*  Revision History:													*/
+/*																		*/
+/*	10/06/2011(GeneA): Created											*/
+/*	11/28/2011(GeneA): Moved data definitions and configuration			*/
+/*		functions to Board_Data.c										*/
+/*	11/29/2011(GeneA): Moved int priority definitions to System_Defs.h	*/
+/*	Feb 17, 2012	<KeithV> Added PPS support for MZ devices           */
+/*																		*/
+/************************************************************************/
+//*	This library is free software; you can redistribute it and/or
+//*	modify it under the terms of the GNU Lesser General Public
+//*	License as published by the Free Software Foundation; either
+//*	version 2.1 of the License, or (at your option) any later version.
+//*	
+//*	This library is distributed in the hope that it will be useful,
+//*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//*	Lesser General Public License for more details.
+//*	
+//*	You should have received a copy of the GNU Lesser General
+//*	Public License along with this library; if not, write to the
+//*	Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+//*	Boston, MA  02111-1307  USA
+/************************************************************************/
+
+#if !defined(BOARD_DEFS_H)
+#define BOARD_DEFS_H
+
+#include <inttypes.h>
+
+//    #define  _OCMP1_BASE_ADDRESS ((uint32_t) &OC1CON)
+    #define  _TIMER_1_IRQ _TIMER_1_VECTOR
+
+/* ------------------------------------------------------------ */
+/*				Public Board Declarations						*/
+/* ------------------------------------------------------------ */
+/* The following define symbols that can be used in a sketch to
+** refer to periperhals on the board generically.
+*/
+
+#define	_BOARD_NAME_	"Digilent Basys MX3"
+
+/* Define the Microcontroller peripherals available on the board.
+*/
+#define	NUM_DIGITAL_PINS	84
+#define	NUM_ANALOG_PINS		7
+#define NUM_OC_PINS			5
+#define	NUM_IC_PINS			4
+#define	NUM_TCK_PINS		0
+#define	NUM_INT_PINS		4
+
+#define	NUM_SERIAL_PORTS	3   
+#define	NUM_SPI_PORTS		1   
+#define	NUM_I2C_PORTS		1   
+
+#define NUM_DSPI_PORTS		2
+#define	NUM_DTWI_PORTS		1
+
+/* Define I/O devices on the board.
+*/
+#define	NUM_LED				11
+#define NUM_BTN				5
+#define	NUM_SWT				8
+#define NUM_SERVO			2
+
+/* Define the number of pins including extended i/o pins.
+** These are pins that are not native to the microcontroller, such
+** as implemented via an i/o expander or external A/D or D/A.
+** This board doesn't have any.
+*/
+#define	NUM_DIGITAL_PINS_EXTENDED	NUM_DIGITAL_PINS
+#define	NUM_ANALOG_PINS_EXTENDED	NUM_ANALOG_PINS
+
+/* ------------------------------------------------------------ */
+/*					Virtual Program Button						*/
+/* ------------------------------------------------------------ */
+#define USE_VIRTUAL_PROGRAM_BUTTON      1
+#define VIRTUAL_PROGRAM_BUTTON_TRIS     TRISCbits.TRISC12
+#define VIRTUAL_PROGRAM_BUTTON          LATCbits.LATC12
+
+/* ------------------------------------------------------------ */
+/*						LED Declarations						*/
+/* ------------------------------------------------------------ */
+
+/* Define the pin numbers for the LEDs.
+*/
+#define	PIN_LED0	13
+#define	PIN_LED1	43
+#define	PIN_LED2	44
+#define	PIN_LED3	45
+#define	PIN_LED4	46
+#define	PIN_LED5	47
+#define	PIN_LED6	48
+#define	PIN_LED7	49
+#define	PIN_LEDR	23
+#define	PIN_LEDG	24
+#define	PIN_LEDB	25
+
+/* ------------------------------------------------------------ */
+/*					Button Declarations							*/
+/* ------------------------------------------------------------ */
+
+/* Define buttons on this board.
+*/
+#define	PIN_BTNL	50	
+#define	PIN_BTNU	51
+#define	PIN_BTNC	52
+#define	PIN_BTND	53
+#define	PIN_BTNR	54
+
+/* ------------------------------------------------------------ */
+/*					Switch Declarations							*/
+/* ------------------------------------------------------------ */
+
+/* Define switches on this board.
+*/
+#define	PIN_SW0	55
+#define	PIN_SW1	56
+#define	PIN_SW2	57
+#define	PIN_SW3	58
+#define	PIN_SW4	59
+#define	PIN_SW5	60
+#define	PIN_SW6	61
+#define	PIN_SW7	62	
+
+/* ------------------------------------------------------------ */
+/*					Pots and Monitor Declarations   			*/
+/* ------------------------------------------------------------ */
+
+/* Define other components on the board
+*/
+#define	PIN_POT1        14
+
+/* ------------------------------------------------------------ */
+/*					Servo Pin Declarations						*/
+/* ------------------------------------------------------------ */
+
+/* No servo connectors on this board.
+*/
+#define PIN_SERVO0 54
+#define PIN_SERVO1 53
+
+/* ------------------------------------------------------------ */
+/*					Timer Pin Declarations						*/
+/* ------------------------------------------------------------ */
+
+#define PIN_OC1		9
+#define	PIN_OC2		5
+#define	PIN_OC3		79
+#define	PIN_OC4		3
+#define	PIN_OC5		6
+
+#define PIN_IC1		8      
+#define PIN_IC2		2      
+#define PIN_IC3		7      
+#define PIN_IC4		34
+#define PIN_IC5		35
+
+//#define	PIN_TCK1	not connected
+//#define	PIN_TCK2	34      
+//#define	PIN_TCK3	35      
+//#define	PIN_TCK4	36      
+//#define	PIN_TCK5	38
+
+/* ------------------------------------------------------------ */
+/*					Interrupt Pin Declarations					*/
+/* ------------------------------------------------------------ */
+
+#define	PIN_INT0	80   // uno32 is on 38
+#define	PIN_INT1	8
+#define PIN_INT2	2
+#define	PIN_INT3	7
+#define	PIN_INT4	34  // pmod JA pin 7
+
+/* ------------------------------------------------------------ */
+/*					SPI Pin Declarations						*/
+/* ------------------------------------------------------------ */
+/* These symbols are defined for compatibility with the original
+** SPI library and the original pins_arduino.h
+*/
+static const uint8_t SS   = 10;		// for SPI master operation, shared with pin 10
+static const uint8_t MOSI = 11;		// PIC32 SDO2
+static const uint8_t MISO = 12;		// PIC32 SDI2
+static const uint8_t SCK  = 22;		// PIC32 SCK2
+
+/* The Digilent DSPI library uses these ports.
+*/
+#define	PIN_DSPI0_SS	10      // SS2; 
+#define	PIN_DSPI1_SS	7       // SS1; 
+#define	PIN_DSPI2_SS	82      // SS3; SPI header
+
+/* ------------------------------------------------------------ */
+/*					Analog Pins									*/
+/* ------------------------------------------------------------ */
+/* Define symbols for accessing the analog pins. This table is
+** used to map an analog pin number to the corresponding digital
+** pin number.
+*/
+#define	A0		14      // AN2
+#define	A1		15      // AN4
+#define A2		16      // AN17
+#define A3		17      // AN18
+#define A4		20      // AN19
+#define A5		21      // AN24
+#define A6		22      // AN16
+
+/* ------------------------------------------------------------ */
+/*					Change Notice Pins							*/
+/* ------------------------------------------------------------ */
+/* These define the pin numbers for the various change notice
+** pins.
+*/
+#define	PIN_CN0		0
+#define	PIN_CN1		1
+#define	PIN_CN2		2      
+#define	PIN_CN3		3      
+#define	PIN_CN4		4
+#define	PIN_CN5		5
+#define	PIN_CN6		6
+#define	PIN_CN7		7
+#define	PIN_CN8		8
+#define	PIN_CN9		9
+#define	PIN_CN10	10
+#define	PIN_CN11	11
+#define	PIN_CN12	12
+#define	PIN_CN13	13
+#define	PIN_CN14	14      
+#define	PIN_CN15	15
+#define	PIN_CN16	16
+#define	PIN_CN17	17      
+#define	PIN_CN18	18      
+#define	PIN_CN19	19
+#define	PIN_CN20	20
+#define	PIN_CN21	21
+#define	PIN_CN22	22
+#define	PIN_CN23	23      
+#define	PIN_CN24	24
+#define	PIN_CN25	25
+#define	PIN_CN26	26      
+#define	PIN_CN27	27      
+#define	PIN_CN28	28      
+#define	PIN_CN29	29      
+#define	PIN_CN30	30
+#define	PIN_CN31	31
+#define	PIN_CN32	32
+#define	PIN_CN33	33
+#define	PIN_CN34	34      
+#define	PIN_CN35	35
+#define	PIN_CN36	36
+#define	PIN_CN37	37      
+#define	PIN_CN38	38      
+#define	PIN_CN39	39
+#define	PIN_CN40	40
+#define	PIN_CN41	41
+
+/* ------------------------------------------------------------ */
+/*					Pin Mapping Macros							*/
+/* ------------------------------------------------------------ */
+/* This section contains the definitions for pin mapping macros that
+** are being redefined for this board variant.
+*/
+
+// NUM_ANALOG_PINS == 14, the first analog pin as represented as a digital pin is also 14
+// if the analog pin is less than 14, then you can put in the analog number 
+// if the pin is greater than 14, it must be a digital pin number.
+
+#undef digitalPinToAnalog
+//#define	digitalPinToAnalog(P) (digital_pin_to_analog_PGM[P])
+#define digitalPinToAnalog(P) (((P) < NUM_ANALOG_PINS) ? (P) : (digital_pin_to_analog_PGM[P]))
+
+#undef analogInPinToChannel
+#define analogInPinToChannel(P) (analog_pin_to_channel_PGM[P])
+
+
+/* ------------------------------------------------------------ */
+/*					Data Declarations							*/
+/* ------------------------------------------------------------ */
+
+/* The following declare externals to access the pin mapping
+** tables. These tables are defined in Board_Data.c.
+*/
+
+#if !defined(OPT_BOARD_DATA)
+
+extern const uint32_t	port_to_tris_PGM[];
+extern const uint8_t	digital_pin_to_port_PGM[];
+extern const uint16_t	digital_pin_to_bit_mask_PGM[];
+extern const uint16_t	digital_pin_to_timer_PGM[];
+
+extern const uint8_t	output_compare_to_digital_pin_PGM[];
+extern const uint8_t	external_int_to_digital_pin_PGM[];
+
+extern const uint8_t	analog_pin_to_channel_PGM[];
+extern const uint8_t 	digital_pin_to_analog_PGM[];
+
+extern const uint8_t	digital_pin_to_pps_out_PGM[];
+extern const uint8_t	digital_pin_to_pps_in_PGM[];
+
+#endif
+
+/* ------------------------------------------------------------ */
+/*				Internal Declarations							*/
+/* ------------------------------------------------------------ */
+/* The following declarations are used to map peripherals for	*/
+/* the core and libraries and to provide configuration options	*/
+/* for the core. They are not normally needed by a user sketch.	*/
+/* ------------------------------------------------------------ */
+
+#if defined(OPT_BOARD_INTERNAL)
+
+/* ------------------------------------------------------------ */
+/*				Core Configuration Declarations					*/
+/* ------------------------------------------------------------ */
+/*																*/
+/* These are conditional compilation switches that control the	*/
+/* board core configuration functions. These functions provide	*/
+/* hooks that can call from some of the core functions into		*/
+/* functions defined below that can be used to extend or		*/
+/* replace the default behavior of the core function. To use	*/
+/* this, enter the appropriate code into the appropriate		*/
+/* function skeleton below and then set the appropriate switch	*/
+/* value to 1. This will cause the configuration function to be	*/
+/* compiled into the build and will cause the code to call the	*/
+/* hook function to be compiled into the core function.			*/
+/*																*/
+/* ------------------------------------------------------------ */
+
+#define	OPT_BOARD_INIT			0	//board needs no special init code
+#define	OPT_BOARD_DIGITAL_IO	0	//board does not extend digital i/o functions
+#define	OPT_BOARD_ANALOG_READ	0	//board does not extend analogRead
+#define	OPT_BOARD_ANALOG_WRITE	0	//board does not extend analogWrite
+
+/* ------------------------------------------------------------ */
+/*					Serial Port Declarations					*/
+/* ------------------------------------------------------------ */
+
+/* Serial port 0 uses UART4
+*/
+#define	_SER0_BASE      ((uint32_t) &U4MODE)
+#define	_SER0_IRQ       _UART4_ERR_IRQ
+#define	_SER0_VECTOR    _UART_4_VECTOR
+#define	_SER0_IPL_ISR   IPL2SRS
+#define	_SER0_IPL       2
+#define	_SER0_SPL       0
+#define _SER0_TX_OUT    PPS_OUT_U4TX     // (RPF8R = 0b0010)   RF8 -> U4TX   
+#define _SER0_TX_PIN    1                // REBIRDY2/RPF8/SCL3/RF8   
+#define _SER0_RX_IN     PPS_IN_U4RX      // (U4RXR = 0b1011)    RPF2 -> U4RX
+#define _SER0_RX_PIN    0                // EBIRDY3/RPF2/SDA3/RF2 
+
+/* Serial port 1 uses UART1; this goes to pins 39&40
+*/
+#define	_SER1_BASE		((uint32_t) &U1MODE)
+#define	_SER1_IRQ		_UART1_ERR_IRQ
+#define	_SER1_VECTOR	_UART_1_VECTOR
+#define	_SER1_IPL_ISR	IPL2SRS
+#define	_SER1_IPL		2
+#define	_SER1_SPL		0
+#define _SER1_TX_OUT    PPS_OUT_U1TX    
+#define _SER1_TX_PIN    40              
+#define _SER1_RX_IN     PPS_IN_U1RX     
+#define _SER1_RX_PIN    39              
+
+/* Serial port 2 is the IRDA; Uses UART5
+*/
+#define	_SER2_BASE      ((uint32_t) &U5MODE)
+#define	_SER2_IRQ       _UART5_ERR_IRQ
+#define	_SER2_VECTOR    _UART_5_VECTOR
+#define	_SER2_IPL_ISR   IPL2SRS
+#define	_SER2_IPL       2
+#define	_SER2_SPL       0
+#define _SER2_TX_OUT    PPS_OUT_U5TX
+#define _SER2_TX_PIN    64          
+#define _SER2_RX_IN     PPS_IN_U5RX 
+#define _SER2_RX_PIN    63          
+
+/* ------------------------------------------------------------ */
+/*					SPI Port Declarations						*/
+/* ------------------------------------------------------------ */
+
+/* The standard SPI port uses SPI2.
+*/
+#define	_SPI_BASE		((uint32_t) &SPI2CON)
+#define _SPI_ERR_IRQ	_SPI2_ERR_IRQ
+#define	_SPI_RX_IRQ		_SPI2_RX_IRQ
+#define	_SPI_TX_IRQ		_SPI2_TX_IRQ
+#define	_SPI_VECTOR		_SPI_2_VECTOR
+#define _SPI_IPL_ISR	IPL3SRS
+#define	_SPI_IPL		3
+#define	_SPI_SPL		0
+
+/* SPI pin declarations
+*/
+#define _SPI_MISO_IN	PPS_IN_SDI2
+#define	_SPI_MISO_PIN	MISO
+#define _SPI_MOSI_OUT	PPS_OUT_SDO2
+#define	_SPI_MOSI_PIN	MOSI
+
+
+/* The Digilent DSPI library uses these ports.
+*/
+
+// same as the default SPI port
+#define	_DSPI0_BASE			((uint32_t) &SPI2CON)
+#define	_DSPI0_ERR_IRQ		_SPI2_ERR_IRQ
+#define	_DSPI0_RX_IRQ		_SPI2_RX_IRQ
+#define	_DSPI0_TX_IRQ		_SPI2_TX_IRQ
+#define	_DSPI0_VECTOR		_SPI_2_VECTOR
+#define _DSPI0_IPL_ISR		IPL3SRS
+#define	_DSPI0_IPL			3
+#define	_DSPI0_SPL			0
+
+#define _DSPI0_MISO_IN		PPS_IN_SDI2
+#define _DSPI0_MISO_PIN		MISO		    // RA1  SDI1    SDI1R = RPA1 = 0 
+#define _DSPI0_MOSI_OUT		PPS_OUT_SDO2
+#define _DSPI0_MOSI_PIN		MOSI		    // RA4  SDO1    RPA4R = SDO1 = 3
+
+
+// 2nd SPI
+#define	_DSPI1_BASE			((uint32_t) &SPI1CON)
+#define	_DSPI1_ERR_IRQ		_SPI1_ERR_IRQ
+#define	_DSPI1_RX_IRQ		_SPI1_RX_IRQ
+#define	_DSPI1_TX_IRQ		_SPI1_TX_IRQ
+#define	_DSPI1_VECTOR		_SPI_1_VECTOR
+#define _DSPI1_IPL_ISR		IPL3SRS
+#define	_DSPI1_IPL			3
+#define	_DSPI1_SPL			0
+
+#define _DSPI1_MISO_IN		PPS_IN_SDI1
+#define _DSPI1_MISO_PIN		83		        // RF2  SDI1    SDI1R = RPF2 =  
+#define _DSPI1_MOSI_OUT		PPS_OUT_SDO1
+#define _DSPI1_MOSI_PIN		81		        // RF7  SDO1    RPF7R = SDO1 = 
+
+
+
+/* ------------------------------------------------------------ */
+/*					I2C Port Declarations						*/
+/* ------------------------------------------------------------ */
+
+/* The standard I2C port uses I2C1 (SCL1/SDA1). These come to pins
+** A4/A5 pins 18/19 on the analog connector.
+*/
+#define	_TWI_BASE		((uint32_t) &I2C1CON)
+#define	_TWI_BUS_IRQ	_I2C1_BUS_IRQ
+#define	_TWI_SLV_IRQ	_I2C1_SLAVE_IRQ
+#define	_TWI_MST_IRQ	_I2C1_MASTER_IRQ
+#define	_TWI_VECTOR		_I2C_1_VECTOR 
+#define _TWI_IPL_ISR	IPL3SRS
+#define _TWI_IPL		3
+#define	_TWI_SPL		0
+
+/* Declarations for Digilent DTWI library.
+**		DTWI0 is SDA2/SCL2 on A4/A5 pins 18/19 (see above comment).
+*/
+
+#define	_DTWI0_BASE		((uint32_t) &I2C1CON)
+#define	_DTWI0_BUS_IRQ	_I2C1_BUS_IRQ
+#define	_DTWI0_VECTOR	_I2C_1_VECTOR 
+#define	_DTWI0_IPL_ISR	IPL3SRS 
+#define	_DTWI0_IPL		3
+#define	_DTWI0_SPL		0
+#define _DTWI0_SCL_PIN  19 
+#define _DTWI0_SDA_PIN  18
+
+/* ------------------------------------------------------------ */
+/*  On MZ parts, ports are defined                              */
+/* ------------------------------------------------------------ */
+
+#define _PORTA
+#define _PORTB
+#define _PORTC
+#define _PORTD
+#define _PORTE
+#define _PORTF
+#define _PORTG
+
+/* ------------------------------------------------------------ */
+/*  JTAG Support, set to 1 if you want JTAG enabled             */
+/*  otherwise JTAG will be disabled                             */
+/* ------------------------------------------------------------ */
+// Wi-FIRE supports JTAG
+//#define _JTAG 0
+
+/* ------------------------------------------------------------ */
+
+#endif	// OPT_BOARD_INTERNAL
+
+/* ------------------------------------------------------------ */
+/*					A/D Converter Declarations					*/
+/* ------------------------------------------------------------ */
+//#define ADCRANGE        1024ul              // analog read will return a max number of ADCRANGE-1
+//#define ADCTADFREQ      25000000ul          // How fast to run the TAD ADC clock
+//#define ADCTADSH        68ul                // How many TADs the Sample and Hold will charge
+//#define __ALT_ADC_IMPL__
+//extern void initADC(void);
+//extern int convertADC(uint8_t channelNumber);
+
+/* ------------------------------------------------------------ */
+
+/* ------------------------------------------------------------ */
+/*					Defines for the On Board uSD				*/
+/* ------------------------------------------------------------ */
+
+//#define _uSD_SPI_CONFIG_
+//
+//#define SD_CS_PIN 52
+//
+//// Pin 54
+//#define prtSDO				IOPORT_C
+//#define	bnSDO				BIT_4
+//#define SD_SDO_PPS()        RPC4R   = 0b0000    // Bit Banging SPI, set as GPIO
+//
+//// Pin 53
+//#define prtSDI				IOPORT_B
+//#define bnSDI				BIT_10
+//#define SD_SDI_PPS()                                        // Bit Banging SPI, leave as nothing
+//
+//// Pin 51
+//#define prtSCK				IOPORT_B
+//#define bnSCK				BIT_14
+//#define SD_SCK_PPS()        RPB14R  = 0b0000    // Bit Banging SPI, set as GPIO
+//
+//#define DefineSDSPI(var) DSPI2 var
+
+
+/* ------------------------------------------------------------ */
+/*					Defines for the On Board MRF24				*/
+/* ------------------------------------------------------------ */
+
+//#define _MRF24_SPI_CONFIG_
+//
+//#define WF_INT              4
+//#define WF_SPI              4
+//#define WF_SPI_FREQ         20000000
+//#define WF_IPL_ISR          IPL3SRS
+//#define WF_IPL              3
+//#define WF_SUB_IPL          0
+//
+//#define WF_INT_TRIS         (TRISAbits.TRISA15)
+//#define WF_INT_IO           (PORTAbits.RA15)
+//
+//#define WF_HIBERNATE_TRIS   (TRISGbits.TRISG1)
+//#define	WF_HIBERNATE_IO     (PORTGbits.RG1)
+//
+//#define WF_RESET_TRIS       (TRISFbits.TRISF4)
+//#define WF_RESET_IO         (LATFbits.LATF4)
+//
+//#define WF_CS_TRIS          (TRISDbits.TRISD9)
+//#define WF_CS_IO            (LATDbits.LATD9)
+//
+//// for PPS devices
+//#define WF_INT_PPS()    INT4R   = 0b1101    // INT4     A15     INT4R = 0b1101
+//#define WF_HIB_PPS()    RPG1R   = 0b0000    // HIB      G1      GPIO
+//#define WF_RESET_PPS()  RPF4R   = 0b0000    // RESET    F4      GPIO
+//#define WF_CS_PPS()     RPD9R   = 0b0000    // CS       D9      GPIO
+//#define WF_SCK_PPS()    RPD10R  = 0b0000    // SCK4     RD10    GPIO
+//#define WF_SDI_PPS()    SDI4R   = 0b0010    // SDI4     RF5     SDI4R = 0b0010
+//#define WF_SDO_PPS()    RPG0R   = 0b1000    // SDO4     RG0     RPG0R = 0b1000
+//
+//
+#endif	// BOARD_DEFS_H
+
+/************************************************************************/
