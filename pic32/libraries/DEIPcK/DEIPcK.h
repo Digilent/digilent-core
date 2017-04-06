@@ -59,11 +59,11 @@
 #endif
 
 #ifdef __cplusplus
-//#include "WProgram.h"	
+#include "WProgram.h"	
 extern "C" {
     #include "utility/deIP.h"
 }
-//#include <NetworkProfile.x>
+#include <NetworkProfile.x>
 
 // Unique IP STATUS codes for deIPcK and deWFcK
 #define ipsNetworkNotInitialized    ForceIPError(MakeDEIPcKStatus(10))
