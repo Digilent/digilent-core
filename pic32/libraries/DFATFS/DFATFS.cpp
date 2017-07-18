@@ -43,7 +43,7 @@
 /*                                                                      */
 /*    10/16/2015(KeithV): Created                                       */
 /************************************************************************/
-#include <DFATFS.h>
+#include "DFATFS.h"
 
 #define iMKFS (_VOLUMES - 1)    // when we mount, we will do it on the last volume we have 
 
@@ -55,6 +55,7 @@ DIR         DDIRINFO::_dir;
 FILINFO     DDIRINFO::_fileInfo;
 DFSVOL *    DFATFS::_arDFSVOL[_VOLUMES]= { NULL };
 char const * const DFATFS::szFatFsVols[_VOLUMES] = {"0:", "1:", "2:", "3:", "4:"};
+char const  DFATFS::szRoot[] = "/";
 
 //**********************************************************************
 //
@@ -70,8 +71,13 @@ FRESULT DFILE::fsopen (const char * path, uint8_t mode)
 
 FRESULT DFILE::fsclose (void)											
 {
-    _fOpen = false;
-    return(f_close (&_file));
+    if(_fOpen)
+    {
+        _fOpen = false;
+        return(f_close(&_file));
+    }
+    
+    return(FR_OK);
 }
 
 FRESULT DFILE::fsread (void* buff, uint32_t btr, uint32_t * br, uint32_t cSectorMax)			
@@ -154,11 +160,19 @@ FRESULT DDIRINFO::fsreaddir (void)
 
 FRESULT DDIRINFO::fsopendir (const char * path)
 {
+#if _USE_LFN
+	_fileInfo.lfname = NULL;
+	_fileInfo.lfsize = 0;
+#endif
     return(f_opendir (&_dir, path));
 }
 
 FRESULT DDIRINFO::fsclosedir (void)
 {
+#if _USE_LFN
+	_fileInfo.lfname = NULL;
+	_fileInfo.lfsize = 0;
+#endif
     return(f_closedir (&_dir));
 }
 
@@ -204,9 +218,20 @@ FRESULT DFATFS::fschdir(const char* path)
     return(f_chdir(path));
 }
 
+bool DFATFS::fsvolmounted(const char* path)
+{
+    const char *    pathT   = path;
+    int iVol = get_ldnumber(&pathT);
+    return(DFATFS::_arDFSVOL[iVol] != NULL);
+}
+
 FRESULT DFATFS::fschdrive(const char* path)
 {
-    return(f_chdrive(path));
+    const char *    pathT   = path;
+    int iVol = get_ldnumber(&pathT);
+
+    if(DFATFS::_arDFSVOL[iVol] == NULL) return(FR_NOT_READY);
+    else return(f_chdrive(path));
 }
 
 FRESULT DFATFS::fsgetcwd(char* buff, uint32_t len)
@@ -277,6 +302,7 @@ FRESULT DFATFS::fsmkfs(DFSVOL& dfsVol)
 
     // create the file system
     fr = f_mkfs(szFatFsVols[iMKFS], dfsVol._sfd, dfsVol._au);
+
     // unmount the drive
     fsunmount(szFatFsVols[iMKFS]);
 

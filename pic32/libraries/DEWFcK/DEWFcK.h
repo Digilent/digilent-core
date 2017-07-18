@@ -80,13 +80,13 @@ private:
     WFSTATE         _wfState;
 
     virtual const NWWF * deWFGetWF() = 0;
-    virtual bool deIPInit(void);
 
 public:
     const static int    INVALID_CONNECTION_ID = 0;
 
     DEWFcK();
 
+    virtual bool deIPInit(void);
     bool  setWF(const NWWF * pNwWF);
 
     bool isWFInitialized(void);
@@ -104,8 +104,8 @@ public:
     bool wfConnect(const char * szSsid, WPA2KEY& key, IPSTATUS * pStatus);                                      // WPA2
     bool wfConnect(SECURITY security, const char * szSsid, const char * szPassPhrase);                          // explicit
     bool wfConnect(SECURITY security, const char * szSsid, const char * szPassPhrase, IPSTATUS * pStatus);      // explicit
-    bool wfConnect(SECURITY security, const char * szSsid, const byte * rgbKey, int iKey);                      // explicit
-    bool wfConnect(SECURITY security, const char * szSsid, const byte * rgbKey, int iKey, IPSTATUS * pStatus);  // explicit
+    bool wfConnect(SECURITY security, const char * szSsid, const uint8_t * rgbKey, int iKey);                      // explicit
+    bool wfConnect(SECURITY security, const char * szSsid, const uint8_t * rgbKey, int iKey, IPSTATUS * pStatus);  // explicit
 
     void wfDisconnect(void);
  

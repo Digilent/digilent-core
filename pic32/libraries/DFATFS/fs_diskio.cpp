@@ -6,7 +6,7 @@
 /* This is an example of glue functions to attach various exsisting      */
 /* storage control modules to the FatFs module with a defined API.       */
 /*-----------------------------------------------------------------------*/
-#include <DFATFS.h>
+#include "DFATFS.h"
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -16,10 +16,12 @@ DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
+    if(DFATFS::_arDFSVOL[pdrv] == NULL)
+    {
+        return(RES_NOTRDY);
+    }
 	return(DFATFS::_arDFSVOL[pdrv]->disk_status());
 }
-
-
 
 /*-----------------------------------------------------------------------*/
 /* Inidialize a Drive                                                    */
@@ -29,10 +31,12 @@ DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
+    if(DFATFS::_arDFSVOL[pdrv] == NULL)
+    {
+        return(RES_NOTRDY);
+    }
     return(DFATFS::_arDFSVOL[pdrv]->disk_initialize());
 }
-
-
 
 /*-----------------------------------------------------------------------*/
 /* Read Sector(s)                                                        */
@@ -45,10 +49,12 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
+    if(DFATFS::_arDFSVOL[pdrv] == NULL)
+    {
+        return(RES_NOTRDY);
+    }
     return(DFATFS::_arDFSVOL[pdrv]->disk_read(buff, sector, count));
 }
-
-
 
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
@@ -62,6 +68,10 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
+    if(DFATFS::_arDFSVOL[pdrv] == NULL)
+    {
+        return(RES_NOTRDY);
+    }
     return(DFATFS::_arDFSVOL[pdrv]->disk_write(buff, sector, count));
 }
 #endif
@@ -78,6 +88,10 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
+    if(DFATFS::_arDFSVOL[pdrv] == NULL)
+    {
+        return(RES_NOTRDY);
+    }
     return(DFATFS::_arDFSVOL[pdrv]->disk_ioctl(cmd, (uint8_t *)buff));
 }
 #endif

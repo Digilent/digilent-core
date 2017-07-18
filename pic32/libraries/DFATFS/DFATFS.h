@@ -75,7 +75,9 @@
 #ifndef _FATFS_INCLUDE_
 #define _FATFS_INCLUDE_
 
-#include <Arduino.h>
+#include <stdarg.h>
+#include <string.h>
+
 #include "./utility/fs_ff.h"
 #include "./utility/fs_diskio.h"
 
@@ -108,7 +110,7 @@ public:
 friend class DFATFS;
 };
 
-class DFILE : public Stream
+class DFILE
 {
 private:
     static const uint32_t _CB_SECTOR_ = _FATFS_CBSECTOR_;   // this is hard coded in the FatFs engine
@@ -132,12 +134,6 @@ public:
     FRESULT fslseek (uint32_t ofs);								                /* Move file pointer of a file object */
     FRESULT fstruncate (void);										            /* Truncate file */
     FRESULT fssync (void);											            /* Flush cached data of a writing file */
-
-    size_t write(uint8_t c) { return fsputc(c); }
-    int read() { uint32_t r; char c; fsread(&c, 1, &r); return c; }
-    int available() { return fssize() - fstell(); }
-    int peek() { uint32_t pos = fstell(); char c = read(); fslseek(pos); }
-    void flush() { fssync(); }
 
     int fsputc (char c);										                /* Put a character to the file */
     int fsputs (const char* str);								                /* Put a string to the file */
@@ -181,6 +177,8 @@ public:
 #if _USE_LFN
     static const char * fsgetLongFilename(void) { return(_fileInfo.lfname); }
     static uint32_t fsgetLongFilenameLength(void) { return(_fileInfo.lfsize); }
+    static void fssetLongFilename(char * szLFN) {_fileInfo.lfname = szLFN;}
+    static void fssetLongFilenameLength(uint32_t cbLFN) {_fileInfo.lfsize = cbLFN;}
 #endif
 };
 
@@ -195,6 +193,7 @@ private:
 public:
 
     static char const * const szFatFsVols[_VOLUMES];
+    static char const szRoot[];
 
     static FRESULT fsmkdir (const char * path);								        /* Create a sub directory */
     static FRESULT fsunlink (const char * path);								    /* Delete an existing file or directory */
@@ -210,6 +209,7 @@ public:
     static FRESULT fsunmount(const char* path);                                     /* UnMount the logical drive */
     static FRESULT fsmkfs (DFSVOL& dfsvol);				                            /* Create a file system on the volume */
     static bool fsexists(const char * path) { return(DDIRINFO::fsstat(path) == FR_OK); }
+    static bool fsvolmounted(const char* path);
 
     friend DSTATUS disk_initialize (uint8_t pdrv);
     friend DSTATUS disk_status (uint8_t pdrv);

@@ -53,8 +53,8 @@
 /*	10/19/2011(KeithV): Created											*/
 /*																		*/
 /************************************************************************/
-#include <DEIPcK.h>
-#include <DEWFcK.h>
+#include <DEIPcK.h>       // include for hardware SPI
+#include "DEWFcK.h"
 
 DEWFcK::DEWFcK()
 {
@@ -155,7 +155,7 @@ bool DEWFcK::wfConnect(const char * szSsid, WEP40KEY& keySet, int iKey)
 }
 bool DEWFcK::wfConnect(const char * szSsid, WEP40KEY& keySet, int iKey, IPSTATUS * pStatus)
 {
-    return(wfConnect(DEWF_SECURITY_WEP_40, szSsid, (const byte *) &keySet, iKey, pStatus));
+    return(wfConnect(DEWF_SECURITY_WEP_40, szSsid, (const uint8_t *) &keySet, iKey, pStatus));
 }
 
 bool DEWFcK::wfConnect(const char * szSsid, WEP104KEY& keySet, int iKey)
@@ -164,7 +164,7 @@ bool DEWFcK::wfConnect(const char * szSsid, WEP104KEY& keySet, int iKey)
 }
 bool DEWFcK::wfConnect(const char * szSsid, WEP104KEY& keySet, int iKey, IPSTATUS * pStatus)
 {
-    return(wfConnect(DEWF_SECURITY_WEP_104, szSsid, (const byte *) &keySet, iKey, pStatus));
+    return(wfConnect(DEWF_SECURITY_WEP_104, szSsid, (const uint8_t *) &keySet, iKey, pStatus));
 }
 
 bool DEWFcK::wfConnect(const char * szSsid, const char * szPassPhrase)
@@ -173,7 +173,7 @@ bool DEWFcK::wfConnect(const char * szSsid, const char * szPassPhrase)
 }
 bool DEWFcK::wfConnect(const char * szSsid, const char * szPassPhrase, IPSTATUS * pStatus)
 {
-    return(wfConnect(DEWF_SECURITY_WPA2_WITH_PASS_PHRASE, szSsid, (const byte *) szPassPhrase, 0, pStatus));
+    return(wfConnect(DEWF_SECURITY_WPA2_WITH_PASS_PHRASE, szSsid, (const uint8_t *) szPassPhrase, 0, pStatus));
 }
 
 bool DEWFcK::wfConnect(const char * szSsid, WPA2KEY& key)
@@ -182,7 +182,7 @@ bool DEWFcK::wfConnect(const char * szSsid, WPA2KEY& key)
 }
 bool DEWFcK::wfConnect(const char * szSsid, WPA2KEY& key, IPSTATUS * pStatus)
 {
-    return(wfConnect(DEWF_SECURITY_WPA2_WITH_KEY, szSsid, (const byte *) &key, 0, pStatus));
+    return(wfConnect(DEWF_SECURITY_WPA2_WITH_KEY, szSsid, (const uint8_t *) &key, 0, pStatus));
 }
 
 bool DEWFcK::wfConnect(SECURITY security, const char * szSsid, const char * szPassPhrase)
@@ -191,14 +191,14 @@ bool DEWFcK::wfConnect(SECURITY security, const char * szSsid, const char * szPa
 }
 bool DEWFcK::wfConnect(SECURITY security, const char * szSsid, const char * szPassPhrase, IPSTATUS * pStatus)
 {
-    return(wfConnect(security, szSsid, (const byte *) szPassPhrase, 0, pStatus));
+    return(wfConnect(security, szSsid, (const uint8_t *) szPassPhrase, 0, pStatus));
 }
 
-bool DEWFcK::wfConnect(SECURITY security, const char * szSsid, const byte * rgbKey, int iKey)
+bool DEWFcK::wfConnect(SECURITY security, const char * szSsid, const uint8_t * rgbKey, int iKey)
 {
     return(wfConnect(security, szSsid, rgbKey, iKey, NULL));
 }
-bool DEWFcK::wfConnect(SECURITY security, const char * szSsid, const byte * rgbKey, int iKey, IPSTATUS * pStatus)
+bool DEWFcK::wfConnect(SECURITY security, const char * szSsid, const uint8_t * rgbKey, int iKey, IPSTATUS * pStatus)
 {
     IPSTATUS status = ipsFailed;
 
