@@ -5,7 +5,7 @@
 # https://github.com/someday_we_will_fill_in_this_file_hopefully!
 
 name=Digilent
-version=1.6.6
+version=1.0.1
 
 # BPS - Not sure if this ever gets used, and if so, how/where
 #rewriting=disabled
@@ -20,7 +20,7 @@ compiler.warning_flags.more=-Wall
 compiler.warning_flags.all=-Wall -Wextra
 
 # Default "compiler.path" is correct, change only if you want to overidde the initial value
-compiler.path={runtime.tools.pic32-tools.path}/bin/
+compiler.path={runtime.tools.xc32-tools.path}/bin/
 compiler.c.cmd=xc32-gcc
 # Use a high -Gnum for devices that have less than 64K of data memory
 # For -G1024, objects 1024 bytes or smaller will be accessed by
@@ -109,26 +109,13 @@ recipe.preproc.macros="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {
 
 
 ###################
-# pic32prog loader
-# https://code.google.com/p/pic32prog/
-# ----------
-upload.tool=pic32prog
-tools.pic32prog.cmd=pic32prog
-tools.pic32prog.cmd.windows=pic32prog.exe
-tools.pic32prog.path={runtime.tools.pic32prog.path}
-
-tools.pic32prog.upload.params.verbose=
-tools.pic32prog.upload.params.quiet=
-tools.pic32prog.upload.pattern="{path}/{cmd}" {upload.verbose}  -d "{serial.port}"  -b {upload.speed}  "{build.path}/{build.project_name}.hex"
-
-###################
 # DigilentPGM loader
 # https://Digilent.com
 # ----------
 upload.tool=DigilentPGM
 tools.DigilentPGM.cmd=DigilentPGM
 tools.DigilentPGM.cmd.windows=DigilentPGM.jar
-tools.DigilentPGM.path={runtime.tools.pic32-tools.path}/../../DigilentPGM/v1.000-digilent
+tools.DigilentPGM.path={runtime.tools.DigilentPGM.path}
 
 tools.DigilentPGM.upload.params.verbose=
 tools.DigilentPGM.upload.params.quiet=
