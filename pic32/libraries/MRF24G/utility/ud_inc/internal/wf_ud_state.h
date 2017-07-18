@@ -193,7 +193,7 @@ uint32_t UdGetWpsCredentials(void);
 #endif /* WF_ERROR_CHECKING */
 
 #ifdef __cplusplus
-extern "C" {
+}
 #endif
 
 

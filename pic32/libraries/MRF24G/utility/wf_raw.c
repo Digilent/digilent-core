@@ -770,7 +770,7 @@ uint16_t RawMove(uint16_t rawId,
     {
         WF_EintDisable();
     }
-
+       
     /* byte count is not valid for all raw move operations */
     return byteCount;
 }

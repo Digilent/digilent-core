@@ -186,7 +186,7 @@ void TCPSocket::discardReadBuffer(void)
 **      This call is safe to make without checking the connection status.
 **
 */
-int TCPSocket::available(void)
+size_t TCPSocket::available(void)
 {
     return(TCPAvailable(&_socket, NULL));
 }
@@ -255,11 +255,11 @@ int TCPSocket::peekByte(size_t index)
 **      This call is safe to make without checking the connection status.
 **
 */
-size_t TCPSocket::peekStream(byte *rgbPeek, size_t cbPeekMax)
+size_t TCPSocket::peekStream(uint8_t *rgbPeek, size_t cbPeekMax)
 {
     return(peekStream(rgbPeek, cbPeekMax, 0));
 }
-size_t TCPSocket::peekStream(byte *rgbPeek, size_t cbPeekMax, size_t index)
+size_t TCPSocket::peekStream(uint8_t *rgbPeek, size_t cbPeekMax, size_t index)
 {
     int32_t cbReady = (((int32_t) available()) - ((int32_t) index));
 
@@ -294,7 +294,7 @@ size_t TCPSocket::peekStream(byte *rgbPeek, size_t cbPeekMax, size_t index)
 */
 int TCPSocket::readByte(void)
 {
-    byte bData = 0;
+    uint8_t bData = 0;
 
     // this will run the stack tasks
     if(available() > 0  && TCPRead(&_socket, &bData, 1, NULL) )
@@ -328,7 +328,7 @@ int TCPSocket::readByte(void)
 **      This call is safe to make without checking the connection status.
 **
 */
-size_t TCPSocket::readStream(byte *rgbRead, size_t cbReadMax)
+size_t TCPSocket::readStream(uint8_t *rgbRead, size_t cbReadMax)
 {
     size_t cbReady = 0;
 
@@ -368,11 +368,11 @@ size_t TCPSocket::readStream(byte *rgbRead, size_t cbReadMax)
 **      is to be put on the wire in one packet, Write should be used.
 **
 */
-int TCPSocket::writeByte(byte bData)
+int TCPSocket::writeByte(uint8_t bData)
 {
     return((int) writeStream(&bData, 1, NULL));
 }                      
-int TCPSocket::writeByte(byte bData, IPSTATUS * pStatus)
+int TCPSocket::writeByte(uint8_t bData, IPSTATUS * pStatus)
 {
     return((int) writeStream(&bData, 1, pStatus));
 }
@@ -414,11 +414,11 @@ int TCPSocket::writeByte(byte bData, IPSTATUS * pStatus)
 **      Multiple write may occur if the array is larger than the socket buffer.
 **
 */
-size_t TCPSocket::writeStream(const byte *rgbWrite, size_t cbWrite)
+size_t TCPSocket::writeStream(const uint8_t *rgbWrite, size_t cbWrite)
 {
     return(writeStream(rgbWrite, cbWrite, NULL));
 }                      
-size_t TCPSocket::writeStream(const byte *rgbWrite, size_t cbWrite, IPSTATUS * pStatus)
+size_t TCPSocket::writeStream(const uint8_t *rgbWrite, size_t cbWrite, IPSTATUS * pStatus)
 {
     // make sure we are Connected
     // this will also run the stack

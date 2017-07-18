@@ -89,7 +89,7 @@ void TCPStateMachine(IPSTACK *   pIpStack, TCPSOCKET *  pSocket, IPSTATUS * pSta
     // If we got a stack, we got something coming in.
     // this is just not a TCP stack maintanience call.
     if(pIpStack != NULL)
-    {
+    {       
         /************************************************************************************/
         /************************************************************************************/
         /*********************************   PROCESS ACK    *********************************/
@@ -160,45 +160,52 @@ void TCPStateMachine(IPSTACK *   pIpStack, TCPSOCKET *  pSocket, IPSTATUS * pSta
 
 
             // We are looking for a SYN to connect
-            if(pIpStack != NULL && pIpStack->pTCPHdr->fSyn)
+            if(pIpStack != NULL)
             {
-                uint32_t    cbOptions       = 0;
-
-                // fix up our socket with the attaching data
-                pSocket->tcpState       =   tcpSynReceivedWhileListening;       // no longer listening
-                pSocket->s.portRemote   =   pIpStack->pTCPHdr->portSrc;
-
-                if(ILIsIPv6(pSocket->s.pLLAdp))
+                if(pIpStack->pTCPHdr->fSyn)
                 {
-                    memcpy(&pSocket->s.ipRemote.ipv6, &pIpStack->pIPv6Hdr->ipSrc, sizeof(IPv6));
-                }
+                    uint32_t    cbOptions       = 0;
+
+                    // fix up our socket with the attaching data
+                    pSocket->tcpState       =   tcpSynReceivedWhileListening;       // no longer listening
+                    pSocket->s.portRemote   =   pIpStack->pTCPHdr->portSrc;
+
+                    if(ILIsIPv6(pSocket->s.pLLAdp))
+                    {
+                        memcpy(&pSocket->s.ipRemote.ipv6, &pIpStack->pIPv6Hdr->ipSrc, sizeof(IPv6));
+                    }
+                    else
+                    {
+                        memcpy(&pSocket->s.ipRemote.ipv4, &pIpStack->pIPv4Hdr->ipSrc, sizeof(IPv4));
+                    }
+
+                    // because I can't be sure that they sent me the MSS option, I need to blow away their
+                    //IpStack and get my own where I know I will have the 4 bytes for the options.
+                    pIpStack = IPSRelease(pIpStack);
+
+                    // this will always get me a new IpStack, but I may be out so if it
+                    // fails I need to clean up; it is the best I can do with no resources
+                    if((pIpStack = TCPCreateSyn(pSocket, &cbOptions, &status)) != NULL)
+                    {
+                        // set up for the transmit
+                        cbTCPSeg                        = 1;    // a SYN is 1 byte long.
+                        cbOptions                       = cbOptions;
+                        pSocket->tLastAck               = tCur;
+                        pSocket->sndISS                 = TCPGetSeqNumber(pSocket->s.pLLAdp);
+                    }
+
+                    // reset the socket to the listening state; wait for another SYN
+                    // maybe then we will have IpStack resources to accept the connection
+                    else
+                    {
+                        TCPResetSocket(pSocket);
+                    }
+                } 
                 else
                 {
-                    memcpy(&pSocket->s.ipRemote.ipv4, &pIpStack->pIPv4Hdr->ipSrc, sizeof(IPv4));
+                    pIpStack = IPSRelease(pIpStack);
                 }
-
-                // because I can't be sure that they sent me the MSS option, I need to blow away their
-                //IpStack and get my own where I know I will have the 4 bytes for the options.
-                pIpStack = IPSRelease(pIpStack);
-
-                // this will always get me a new IpStack, but I may be out so if it
-                // fails I need to clean up; it is the best I can do with no resources
-                if((pIpStack = TCPCreateSyn(pSocket, &cbOptions, &status)) != NULL)
-                {
-                    // set up for the transmit
-                    cbTCPSeg                        = 1;    // a SYN is 1 byte long.
-                    cbOptions                       = cbOptions;
-                    pSocket->tLastAck               = tCur;
-                    pSocket->sndISS                 = TCPGetSeqNumber(pSocket->s.pLLAdp);
-                }
-
-                // reset the socket to the listening state; wait for another SYN
-                // maybe then we will have IpStack resources to accept the connection
-                else
-                {
-                    TCPResetSocket(pSocket);
-                }
-            }           
+            }
             break;
 
         case tcpSynSent:
@@ -269,7 +276,7 @@ void TCPStateMachine(IPSTACK *   pIpStack, TCPSOCKET *  pSocket, IPSTATUS * pSta
                 pIpStack = IPSRefresh(pIpStack, pSocket->s.pLLAdp, pStatus);
 
                 // say we received the fin
-                pSocket->rcvNXT++;
+                if(!pSocket->fGotFin) pSocket->rcvNXT++;
                 pSocket->fGotFin = true;
 
                 // we can send the fin with the ack if we have no data to flush
@@ -315,13 +322,39 @@ void TCPStateMachine(IPSTACK *   pIpStack, TCPSOCKET *  pSocket, IPSTATUS * pSta
         case tcpLastAck:
 
             // We got the ACK to our FIN; we are DONE
-            if(pIpStack != NULL && pSocket->sndUNA == pSocket->sndNXT)
+            if(pIpStack != NULL)
             {
-                pSocket->tcpState = tcpWaitUserClose;
-            }
+                if(pSocket->sndUNA == pSocket->sndNXT)
+                {
 
-            // always releaset the stack as we have nothing to send back
-            pIpStack = IPSRelease(pIpStack);
+                    // very tricky, we could have had FINs cross, and in fact we thought
+                    // his fin/ack was our ack, when we really need to ack his fin
+                    // this is a little screwy because he should not ack our fin with another fin
+                    // but Chrome will do this, so just ack his fin
+                    if(pIpStack->pTCPHdr->fFin)
+                    {
+                        pIpStack = IPSRefresh(pIpStack, pSocket->s.pLLAdp, pStatus);
+
+                        // say we received the fin
+                        if(!pSocket->fGotFin) pSocket->rcvNXT++;
+                        pSocket->fGotFin = true;
+                    }
+
+                    // normal case, we are just done.
+                    // don't send anything back.
+                    else
+                    {
+                        pIpStack = IPSRelease(pIpStack);
+                    }
+
+                    // no matter what, we are done
+                    pSocket->tcpState = tcpWaitUserClose;             
+                }
+                else
+                {
+                    pIpStack = IPSRelease(pIpStack);    
+                }
+            }
             break;
 
         // This is the queing of the close until we flush our data
@@ -335,7 +368,7 @@ void TCPStateMachine(IPSTACK *   pIpStack, TCPSOCKET *  pSocket, IPSTATUS * pSta
                 pIpStack = IPSRefresh(pIpStack, pSocket->s.pLLAdp, pStatus);
 
                 // say we received the fin
-                pSocket->rcvNXT++;
+                if(!pSocket->fGotFin) pSocket->rcvNXT++;
                 pSocket->fGotFin = true;
                 pSocket->tcpState = tcpCloseWait;
             }
@@ -358,7 +391,7 @@ void TCPStateMachine(IPSTACK *   pIpStack, TCPSOCKET *  pSocket, IPSTATUS * pSta
                 // We got the fIN; all we have to do is ack it and we are done
                 if(pIpStack->pTCPHdr->fFin)
                 {
-                    pSocket->rcvNXT++;
+                    if(!pSocket->fGotFin) pSocket->rcvNXT++;
                     pSocket->fGotFin = true;
                     pIpStack = IPSRefresh(pIpStack, pSocket->s.pLLAdp, pStatus);
 
@@ -372,6 +405,7 @@ void TCPStateMachine(IPSTACK *   pIpStack, TCPSOCKET *  pSocket, IPSTATUS * pSta
                     else
                     {
                         pSocket->tcpState       = tcpLastAck;
+//                        pSocket->tcpState       = tcpFinWait1;
                     }
                 }
 
@@ -405,7 +439,7 @@ void TCPStateMachine(IPSTACK *   pIpStack, TCPSOCKET *  pSocket, IPSTATUS * pSta
                 // We got the FIN; all we have to do is ACK it and we are done
                 if(pIpStack->pTCPHdr->fFin)
                 {
-                    pSocket->rcvNXT++;
+                    if(!pSocket->fGotFin) pSocket->rcvNXT++;
                     pSocket->fGotFin = true;
                     pIpStack = IPSRefresh(pIpStack, pSocket->s.pLLAdp, pStatus);
                     pSocket->tcpState       = tcpWaitUserClose;
@@ -645,13 +679,8 @@ static bool TCPCheckForRST(IPSTACK *  pIpStack, TCPSOCKET * pSocket, uint32_t tC
                     pSocket->tcpState               <=  tcpLastAck          )
                 {
                     // check to see if their seq number is within my recieve window
-//                    if( (   rcvTOP(pSocket) > pSocket->rcvNXT                                   &&
-                    if( (   pIpStack->pTCPHdr->seqNbr <= pSocket->rcvNXT                        &&   // I don't allow out of order seq numbers.
-                              pSocket->rcvNXT <= (pIpStack->pTCPHdr->seqNbr + pIpStack->cbPayload) )
-                                        ||
-//                        (   rcvTOP(pSocket) == pSocket->rcvNXT                                  &&
-                        (   pIpStack->pTCPHdr->seqNbr == pSocket->rcvNXT                        &&
-                            pIpStack->cbPayload == 0                                            ))
+                    if( pIpStack->pTCPHdr->seqNbr <= pSocket->rcvNXT                        &&   // I don't allow out of order seq numbers.
+                        pSocket->rcvNXT <= (pIpStack->pTCPHdr->seqNbr + pIpStack->cbPayload + pIpStack->pTCPHdr->fFin) )
 
                      {
                         // if we are asked to reset, then reset the socket
@@ -790,7 +819,7 @@ static void TCPProcessSYN(IPSTACK *  pIpStack, TCPSOCKET * pSocket, uint32_t tCu
                     case tcpOpKdNoOperation:
 
                         cbOptionsT--;
-                        pOption = (TCPOPTION *) (((void *) pOption) + 1);
+                        pOption = (TCPOPTION *) (((uint8_t *) pOption) + 1);
 
                         // there is no length, so just go to the next option
                         continue;
@@ -824,7 +853,7 @@ static void TCPProcessSYN(IPSTACK *  pIpStack, TCPSOCKET * pSocket, uint32_t tCu
 
                 // go to the next option
                 cbOptionsT -= pOption->length;
-                pOption = (TCPOPTION *) (((void *) pOption) + pOption->length);
+                pOption = (TCPOPTION *) (((uint8_t *) pOption) + pOption->length);
             }
         }
 
@@ -1288,7 +1317,7 @@ bool TCPTransmit(IPSTACK *  pIpStack, TCPSOCKET * pSocket, int32_t cbSend, int32
         AssignStatusSafely(pStatus, status);
         return(false);
     }
-
+    
     pIpStack->pTCPHdr->portSrc      = pSocket->s.portLocal;
     pIpStack->pTCPHdr->portDest     = pSocket->s.portRemote;
 

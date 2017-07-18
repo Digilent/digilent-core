@@ -51,7 +51,7 @@
 #ifndef MRF24G_AC
 #define MRF24G_AC
 
-#include <DEIPcK.h>
+#include <DEIPcK.h>       // include for hardware SPI
 #include <DEWFcK.h>
 
 #ifdef __cplusplus

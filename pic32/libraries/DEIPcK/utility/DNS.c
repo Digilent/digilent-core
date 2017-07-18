@@ -51,7 +51,14 @@
 /*                                                                      */
 /************************************************************************/
 #include "deIP.h"
+
+// #if 0
+#ifdef __IMPORT
+#undef __IMPORT
+#endif
+#define __IMPORT __attribute__((section(".data")))
 #include <ctype.h>
+// #endif
 
 /*********************************************************************
  * Function:        int strncasecmp(const char *s1,	const char *s2,	size_t n)

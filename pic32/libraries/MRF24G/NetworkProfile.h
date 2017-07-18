@@ -62,7 +62,7 @@
 // board specific stuff
 #if defined(_MRF24_SPI_CONFIG_)
 
-    #include "SPIandINT.h"
+    #include <SPIandINT.h>
 
 #elif defined (_BOARD_FUBARINO_SD_)
 

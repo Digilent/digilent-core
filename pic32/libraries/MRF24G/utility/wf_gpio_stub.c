@@ -42,7 +42,7 @@
 //                                  INCLUDES
 //==============================================================================
 // board-specific includes
-#include <NetworkProfile.x>
+#include <NetworkProfile.h>
 #include "./ud_inc/shared/wf_universal_driver.h"
 
 /*****************************************************************************

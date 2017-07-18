@@ -30,7 +30,7 @@
 * OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "MRF24GAdaptor.h"
+#include "../MRF24GAdaptor.h"
 
 static void OutputMrf24wgAssertInfo(uint32_t eventData);
 extern          WFMRFD         wfmrf24;

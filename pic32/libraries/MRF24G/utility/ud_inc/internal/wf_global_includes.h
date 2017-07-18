@@ -41,7 +41,7 @@
 #ifndef __WF_GLOBAL_INCLUDES_H
 #define __WF_GLOBAL_INCLUDES_H
 
-#include "wf_customize.h"
+#include "../../wf_customize.h"
 #include "wf_endian.h"
 #include "../shared/wf_stubs.h"
 #include "../shared/wf_events.h"

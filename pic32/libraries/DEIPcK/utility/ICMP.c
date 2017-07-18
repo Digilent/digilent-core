@@ -63,7 +63,7 @@ static void ExICMP0(void * pv, bool fStartsInMachineOrder)
 
     // indentifier
     ExEndian(pv, sizeof(uint16_t));
-    pv += sizeof(uint16_t);
+    pv = ((uint8_t *) pv) + sizeof(uint16_t);
 
     // sequence
     ExEndian(pv, sizeof(uint16_t));
@@ -131,7 +131,7 @@ uint32_t ExICMP(void * pv, uint32_t cb, bool fStartsInMachineOrder)
         case icmpTypeEcho:                  
         case icmpTypeEchoReply:
             if(cb < sizeof(ICMPT0)) return(0);
-            ExICMP0(pv + sizeof(ICMPHDR), fStartsInMachineOrder);
+            ExICMP0(((uint8_t *) pv) + sizeof(ICMPHDR), fStartsInMachineOrder);
             cbRet = cb; // don't know the length of the data, must trust what came in.
             break;
    

@@ -83,6 +83,5 @@ void WF_ProcessEvent(uint8_t eventType, uint32_t eventData);
 }
 #endif
 
-
 #endif /* __WF_STUBS_H */
 

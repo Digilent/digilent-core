@@ -41,7 +41,7 @@
 //                                  INCLUDES
 //==============================================================================
 // board-specific includes
-#include <NetworkProfile.x>
+#include <NetworkProfile.h>
 #include "./ud_inc/shared/wf_universal_driver.h"
 
 /*****************************************************************************
@@ -116,25 +116,58 @@ void WF_EintInit(void)
   Remarks:
     Should not be called directly from application code.
 *****************************************************************************/
+extern bool fBlockIOBus;
+
 void WF_EintEnable(void)
 {
-    // PIC32 uses level-triggered interrupts, so it is possible the Universal Driver
+    
+    // PIC32 uses edge-triggered interrupts, so it is possible the Universal Driver
     // may have temporarily disabled the external interrupt, and then missed the 
     // falling edge when the MRF24WG asserted the interrupt line.  The code below
     // checks for this condition and forces the interrupt if needed.
     
-    // if interrupt line is low, then PIC32 may have missed the falling edge
-    // while the interrupt was disabled.
+    // above comment is somewhat in error. The IF flag will get set even if
+    // interrupts are disabled. The problem is, the MRF may not toggle the interrupt
+    // pin if it has consecutive things to service. Here, the interrupt pin just stays
+    // low, so we need to check if the MRF needs servicing and if so, set the IF flag
+      
+
+    // This is for the OpenScope ONLY!!
+    // when the logic analyzer is running we can do NO GPIO
+    // Nothing can go on the IO bus as the LA is saturating the IO bus
+    // and anything on the IO bus will cause a DMA stall
+    // So we must somehow sense if the INT line is low, and if so
+    // set the IF flag. We do this by PPS'ing the INT to another unused pin
+    // that the internal pullup resistor is set. This will force the INT high
+    // wait 100ns, and then switch it back. If the INT line is low we will get a high->low
+    // edge, and that will cause an interrupt and set the IF flag.
+#if defined(NO_IO_BUS)
+    if(fBlockIOBus)
+    {
+        uint32_t tStart = 0;
+
+        WF_INTA_PPS();
+        tStart = GetSysTick();
+        while(GetSysTick() - tStart < 10);  // 100 nsec wait time -> 10MHz
+        WF_INT_PPS();
+    }
+    
+    // if we are not running the LA, just do a GPIO to check if the pin is low.
+    else 
+#endif
+
     if ( WF_INT_IO == 0 )
     {
         // Need to force the interrupt for two reasons:
         //   1) there is an event that needs to be serviced
+        //      The MRF will just hold the line low and not force an interrupt if it 
+        //      has consecutive things to be serviced
         //   2) MRF24WG won't generate another falling edge until the interrupt
         //      is processed.
         WIFI_IFSxSET = WIFI_INT_MASK; // this will force the INT1 interrupt as soon as we
                              // we enabled it below.
     }
-
+    
     /* enable the external interrupt */
     WIFI_IECxSET = WIFI_INT_MASK;
 }
@@ -215,6 +248,12 @@ bool WF_isEintPending(void)
     return(((WF_INT_IO == 0) && (WIFI_INT_IF == 0)));
 }
 
+void WF_SetInt(void)
+{
+    // if interrupt line is low, but interrupt request has not occurred
+    WIFI_IFSxSET = WIFI_INT_MASK;
+}
+
 
 /*****************************************************************************
   Function:
@@ -238,15 +277,16 @@ bool WF_isEintPending(void)
   Remarks:
     None
 *****************************************************************************/
-#if defined(__PIC32MZXX__)
+#if defined(_OFF000_VOFF_POSITION)
 void __attribute((interrupt(WF_IPL_ISR), at_vector(WF_INT_VEC), nomips16)) _WFInterrupt(void)
 #else
 void __attribute((interrupt(WF_IPL_ISR), vector(WF_INT_VEC), nomips16)) _WFInterrupt(void)
 #endif
 {
+    
     // clear EINT
     WIFI_IFSxCLR = WIFI_INT_MASK;        // clear the interrupt
-    WIFI_IECxCLR = WIFI_INT_MASK;        // disable external interrupt
+//    WIFI_IECxCLR = WIFI_INT_MASK;        // disable external interrupt
     WF_EintHandler();           // call Univeral Driver handler function
 }
 

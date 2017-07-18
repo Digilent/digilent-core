@@ -94,7 +94,7 @@ bool TCPIsEstablished(HSOCKET hSocket, IPSTATUS * pStatus)
   Returns:
         true if the connection is in the process of connecting, half or full duplex
         connection, or in the process of closing but not yet closed.
-        false if the conneciton is not in any kind of active condition.
+        false if the connection is not in any kind of active condition.
   ***************************************************************************/
 bool TCPIsConnected(HSOCKET hSocket, IPSTATUS * pStatus)
 {

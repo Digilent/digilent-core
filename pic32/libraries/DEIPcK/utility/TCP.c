@@ -85,7 +85,7 @@ static bool ExTCPOptions(TCPHDR * pTCPHdr)
             case tcpOpKdNoOperation:
                 
                 cbOptions--;
-                pOptions = (TCPOPTION *) (((void *) pOptions) + 1);
+                pOptions = (TCPOPTION *) (((uint8_t *) pOptions) + 1);
                 
                 // there is no length, so just go to the next option
                 continue;
@@ -130,7 +130,7 @@ static bool ExTCPOptions(TCPHDR * pTCPHdr)
 
         // go to the next option
         cbOptions -= pOptions->length;
-        pOptions = (TCPOPTION *) (((void *) pOptions) + pOptions->length);
+        pOptions = (TCPOPTION *) (((uint8_t *) pOptions) + pOptions->length);
     }
 
     return(true);
@@ -227,7 +227,11 @@ void TCPAbortAllSockets(void)
     TCPSOCKET * pSocket = NULL;
 
     // look at all of the TCP sockets
-    while((pSocket = FFNext(&g_ffptActiveTCPSockets, pSocket)) != NULL)
+    //we have to clean out the list, each time we remove
+    // the first entry, the next point will get cleared because the socket
+    // is set to zero, so the next is set to zero in the socket
+    // so just iterate on the first entry until the list is empty
+    while((pSocket = FFNext(&g_ffptActiveTCPSockets, NULL)) != NULL)
     {
         TCPAbort(pSocket);
     }
@@ -646,12 +650,19 @@ uint32_t TCPAddRxDataToSocket(TCPSOCKET * pSocket, uint32_t seqNbr, uint8_t * pb
 
 void TCPPeriodicTasks(void)
 {
-    TCPSOCKET * pSocketCur = NULL;
+    TCPSOCKET * pSocketCur = FFNext(&g_ffptActiveTCPSockets, NULL);
 
-    // look at all of the pools
-    while((pSocketCur = FFNext(&g_ffptActiveTCPSockets, pSocketCur)) != NULL)
+    // look at all of the active sockets
+    // remember the TCPStateMachine may remove a socket when
+    // closed and that could clear the socket and thus the next pointer
+    // in the list and FFNext will just have a NULL as the next pointer 
+    // after TCPStateMachine runs, so we need to get the next pointer
+    // before we run the state machine
+    while(pSocketCur != NULL)
     {
+        TCPSOCKET * pSocketNext = FFNext(&g_ffptActiveTCPSockets, pSocketCur);
         TCPStateMachine(NULL, pSocketCur, NULL);
+        pSocketCur = pSocketNext;
     }
 }
 

@@ -151,24 +151,26 @@ uint16_t IPSGetPayloadFromAdaptor(IPSTACK * pIpStack, uint16_t cbAlloc)
             {
                 memset(pIpStack->pPayload, 0, pIpStack->cbPayload);
                 pIpStack->cbPayload = cbAlloc;
+                return(pIpStack->cbPayload);
             }
             else if(pIpStack->fFreePayloadToAdp)
             {
                 RRHPFree(pIpStack->pLLAdp->pNwAdp->hAdpHeap, pIpStack->pPayload);
             }
-
+            
+            // doesn't matter if we are free or not, we don't have the room
+            // so set the size to zero
             pIpStack->pPayload = NULL;
             pIpStack->cbPayload = 0;
         }
-
-        if( cbAlloc > pIpStack->cbPayload &&
-            (pIpStack->pPayload = RRHPAlloc(pIpStack->pLLAdp->pNwAdp->hAdpHeap, cbAlloc)) != NULL)
+        
+        // if we got here, we know we need a payload
+        if((pIpStack->pPayload = RRHPAlloc(pIpStack->pLLAdp->pNwAdp->hAdpHeap, cbAlloc)) != NULL)
         {
             pIpStack->cbPayload = cbAlloc;
             pIpStack->fFreePayloadToAdp = true;
+            return(pIpStack->cbPayload);
         }
-
-        return(pIpStack->cbPayload);
     }
 
     return(0);
@@ -228,22 +230,22 @@ IPSTACK * IPSInitIpStack(const LLADP * pLLAdp, void * pIpStackBuff, uint32_t typ
     pIpStack->headerOrder           = MACHINE_ORDER;
     pIpStack->pLLAdp                = pLLAdp;
 
-    pIpStack->pFrameII              = (((void *) pIpStack) + sizeof(IPSTACK));
+    pIpStack->pFrameII              = (void *) (((uint8_t *) pIpStack) + sizeof(IPSTACK));
     pIpStack->cbFrame               = sizeof(ETHERNETII_FRAME);
 
-    pIpStack->pIPHeader             = (((void *) pIpStack->pFrameII) + sizeof(ETHERNETII_FRAME));
+    pIpStack->pIPHeader             = (((uint8_t *) pIpStack->pFrameII) + sizeof(ETHERNETII_FRAME));
 
     if(ILIsIPv6(pLLAdp))
     {
         pIpStack->etherType         = ethertypeIPv6;
         pIpStack->cbIPHeader        = sizeof(IPv6HDR);
-        pIpStack->pTransportHeader  = (pIpStack->pIPHeader + sizeof(IPv6HDR));
+        pIpStack->pTransportHeader  = (((uint8_t *) pIpStack->pIPHeader) + sizeof(IPv6HDR));
     }
     else
     {
         pIpStack->etherType         = ethertypeIPv4;
         pIpStack->cbIPHeader        = sizeof(IPv4HDR);
-        pIpStack->pTransportHeader  = (pIpStack->pIPHeader + sizeof(IPv4HDR));
+        pIpStack->pTransportHeader  = (((uint8_t *) pIpStack->pIPHeader) + sizeof(IPv4HDR));
     }
 
     switch(type)
@@ -458,7 +460,7 @@ bool IPSParseToOrder(IPSTACK * pIpStack, uint32_t Order)
                 // update payload and state
                 if(!pIpStack->fFrameIsParsed)
                 {
-                    pIpStack->pPayload  += pIpStack->cbFrame;
+                    pIpStack->pPayload = ((uint8_t *) pIpStack->pPayload) + pIpStack->cbFrame;
                     pIpStack->cbPayload -= pIpStack->cbFrame;
                 }
 
@@ -512,7 +514,7 @@ bool IPSParseToOrder(IPSTACK * pIpStack, uint32_t Order)
                         break;
                     }
 
-                    pIpStack->pPayload      += pIpStack->cbIPHeader;
+                    pIpStack->pPayload = ((uint8_t *) pIpStack->pPayload) + pIpStack->cbIPHeader;
 
                     // this is very important, we must truncate junk at the end of the payload
                     // cbTotal MUST come from what is specified in the header, and cbPayload MUST
@@ -558,7 +560,7 @@ bool IPSParseToOrder(IPSTACK * pIpStack, uint32_t Order)
                         state = ipsIpStackParsingError;
                         break;
                     }
-                    pIpStack->pPayload += sizeof(UDPHDR);
+                    pIpStack->pPayload = ((uint8_t *) pIpStack->pPayload) + sizeof(UDPHDR);
                     pIpStack->cbPayload = cbT - sizeof(UDPHDR);
                 }
 
@@ -583,7 +585,7 @@ bool IPSParseToOrder(IPSTACK * pIpStack, uint32_t Order)
                         state = ipsIpStackParsingError;
                         break;
                     }
-                    pIpStack->pPayload += pIpStack->cbTranportHeader;
+                    pIpStack->pPayload = ((uint8_t *) pIpStack->pPayload) + pIpStack->cbTranportHeader;
                     pIpStack->cbPayload -= pIpStack->cbTranportHeader;
                 }
 

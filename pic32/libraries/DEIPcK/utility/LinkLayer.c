@@ -295,7 +295,7 @@ const LLADP * LLAddAdaptor(const NWADP *pNwAdp, void * pAdpMem, uint32_t cbAdpMe
     memset(pAdpMem, 0, cbAdpMem);
 
     // set up the adaptor
-    pLLAdp->arLLArp = (LLARP *) (pAdpMem + sizeof(LLADP));
+    pLLAdp->arLLArp = (LLARP *) (((uint8_t *) pAdpMem) + sizeof(LLADP));
     pLLAdp->cLLArp  = (cbAdpMem - sizeof(LLADP)) / sizeof(LLARP);
 
     // save away the adaptor

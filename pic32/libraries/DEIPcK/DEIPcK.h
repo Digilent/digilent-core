@@ -63,7 +63,7 @@
 extern "C" {
     #include "utility/deIP.h"
 }
-#include <NetworkProfile.x>
+#include <NetworkProfile.h>
 
 // Unique IP STATUS codes for deIPcK and deWFcK
 #define ipsNetworkNotInitialized    ForceIPError(MakeDEIPcKStatus(10))
@@ -98,7 +98,7 @@ typedef struct FFLL_T
     void *     _this;      // A pointer to myself, so I know who I am when I come off the list
 } FFLL;
 
-class TCPSocket : public Stream {
+class TCPSocket {
 private:
 
     FFLL _ffptInfo;
@@ -148,25 +148,22 @@ public:
     }
 
     void discardReadBuffer(void);
-    int available(void);
+    size_t available(void);
 
     int peekByte(void);
     int peekByte(size_t index);
-    int peek() { return peekByte(); }
 
-    size_t peekStream(byte *rgbPeek, size_t cbPeekMax);
-    size_t peekStream(byte *rgbPeek, size_t cbPeekMax, size_t index);
+    size_t peekStream(uint8_t *rgbPeek, size_t cbPeekMax);
+    size_t peekStream(uint8_t *rgbPeek, size_t cbPeekMax, size_t index);
  
     int readByte(void);
-    int read() { return readByte(); }
-    size_t readStream(byte *rgbRead, size_t cbReadMax);
+    size_t readStream(uint8_t *rgbRead, size_t cbReadMax);
  
-    int writeByte(byte bData);                      
-    int writeByte(byte bData, IPSTATUS * pStatus);
-    size_t write(byte d) { return writeByte(d); }
+    int writeByte(uint8_t bData);                      
+    int writeByte(uint8_t bData, IPSTATUS * pStatus);
 
-    size_t writeStream(const byte *rgbWrite, size_t cbWrite);                            
-    size_t writeStream(const byte *rgbWrite, size_t cbWrite, IPSTATUS * pStatus);
+    size_t writeStream(const uint8_t *rgbWrite, size_t cbWrite);                            
+    size_t writeStream(const uint8_t *rgbWrite, size_t cbWrite, IPSTATUS * pStatus);
 
     void flush(void) {TCPFlush(&_socket);}
  
@@ -214,11 +211,11 @@ public:
     int peekByte(void);
     int peekByte(size_t index);
 
-    size_t peekDatagram(byte *rgbPeek, size_t cbPeekMax);
-    size_t peekDatagram(byte *rgbPeek, size_t cbPeekMax, size_t index);
+    size_t peekDatagram(uint8_t *rgbPeek, size_t cbPeekMax);
+    size_t peekDatagram(uint8_t *rgbPeek, size_t cbPeekMax, size_t index);
 
-    size_t readDatagram(byte *rgbRead, size_t cbReadMax);
-    long int writeDatagram(const byte *rgbWrite, size_t cbWrite);
+    size_t readDatagram(uint8_t *rgbRead, size_t cbReadMax);
+    long int writeDatagram(const uint8_t *rgbWrite, size_t cbWrite);
 
     bool getRemoteEndPoint(IPEndPoint& epRemote);
     bool getLocalEndPoint(IPEndPoint& epLocal);
@@ -411,7 +408,6 @@ private:
     const NWADP *   _pNwAdp;
     const LLADP *   _pLLAdp;
 
-    virtual bool deIPInit(void);
     virtual const NWADP * deIPGetAdaptor(void) = 0;
 
 public:
@@ -430,7 +426,8 @@ public:
     static const unsigned short iPersonalPorts46 = 46000;
 
     DEIPcK();
-    bool setAdaptor(const NWADP * pNwAdp);
+    
+    virtual bool deIPInit(void);
 
     bool begin(void);
     bool begin(const IPv4& ip);
@@ -585,6 +582,7 @@ public:
     {
         return(tcpStartListening(listeningPort, tcpServer, NULL));
     }
+    void abortTCPServers(void);
 
     bool udpStartListening(uint16_t listeningPort, UDPServer& udpServer, IPSTATUS * pStatus);
 
@@ -592,6 +590,8 @@ public:
     {
         return(udpStartListening(listeningPort, udpServer, NULL));
     }
+    
+    void abortUDPServers(void);
 
     static void periodicTasks(void);
 
@@ -672,6 +672,9 @@ extern HPMGR    hDhcpDnsNtpPMGR;            // handle to shared DHCP / DNS / SNT
 
 #endif  // place code
 
+#else
+    #include "utility/deIP.h"
+    #include <NetworkProfile.h>
 #endif
 
 #endif  // _DEIPCK_H

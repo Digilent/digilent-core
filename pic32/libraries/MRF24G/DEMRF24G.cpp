@@ -51,12 +51,14 @@
 /*  10/16/2013 (KeithV): Created                                        */
 /*                                                                      */
 /************************************************************************/
-#include <DEIPcK.h>
+#include <DEIPcK.h>       // include for hardware SPI
 
 #include "utility/ud_inc/shared/wf_universal_driver.h"
 
 const NWADP * DEMRF24::deIPGetAdaptor(void)
 {
+    volatile unsigned char * pIPC = ((volatile unsigned char *) &IPC0) + 16 * (WF_INT_VEC / 4) + (WF_INT_VEC % 4);
+    
     // get our pins set up
     WF_HIBERNATE_IO     = 0;
     WF_HIBERNATE_TRIS   = 0;
@@ -71,9 +73,10 @@ const NWADP * DEMRF24::deIPGetAdaptor(void)
     WF_INT_TRIS         = 1;
 
     // register our interrupt vectors
-    setIntVector(WF_INT_VEC, _WFInterrupt);
-    setIntPriority(WF_INT_VEC, 3, 0);
-
+//    setIntVector(WF_INT_VEC, _WFInterrupt);
+//    setIntPriority(WF_INT_VEC, 3, 0);
+    *pIPC = (3 << _IPC0_CTIP_POSITION);
+    
     return(GetMRF24GAdaptor(NULL, hRRAdpHeap, NULL));
 }
 

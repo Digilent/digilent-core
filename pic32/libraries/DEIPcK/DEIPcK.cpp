@@ -51,7 +51,7 @@
 /*      11/20/2013(KeithV): Created                                     */
 /*                                                                      */
 /************************************************************************/
-#include <DEIPcK.h>
+#include "DEIPcK.h"
 
 DEIPcK::DEIPcK()
 {
@@ -60,42 +60,42 @@ DEIPcK::DEIPcK()
     _pLLAdp             = NULL;
 }
 
-bool  DEIPcK::setAdaptor(const NWADP * pNwAdp)
-{
-    if(_pNwAdp == NULL)
-    {
-        _pNwAdp = pNwAdp;
-    }
-    else
-    {
-        return(false);
-    }
-
-    return(_pNwAdp != NULL);
-}
-
 bool DEIPcK::deIPInit(void)
 {
-    
+     
     // if an adaptor has not been set, load the default one
-    // as supplied by NetworkProfile.x
-    if(_pNwAdp == NULL)
+    // as supplied by NetworkProfile.h
+    // We only support 1 adaptor today in MPIDE, this can be changed.
+    if(_pLLAdp == NULL)
     {
-        setAdaptor(deIPGetAdaptor());
+        //TODO: really think about this; won't this init ALL adaptors and kill other adaptors being used??
+        // where should this be called? When we support multiple adaptors we need to move this to the constructor
+        // but be careful that the constructors run in an appropriate order.
+        IPSInit(NULL, 0, 0);
+       
+        if(_pNwAdp == NULL)
+        {
+            _pNwAdp = deIPGetAdaptor();
+        }
+        
+        // add the adaptor to the link layer for processing.
+        // again we only support 1 adaptor at this time
+        _pLLAdp = LLAddAdaptor(_pNwAdp, rgbLLARPMem, cbARPMem, NULL);
     }
 
-    return(_pNwAdp != NULL);
+    return(_pLLAdp != NULL);
 }
 
+// Very important distinction; Linked means connected to the network
+// it does NOT mean you have an IP address
+// in the case of WiFi, to be linked you must have
+// established an 802.11 connection because that means
+// you are ON the network. Just initializing a WiFi module
+// does NOT mean you are linked. You MUST be connected to the
+// AP to be linked, you must be ON the network.
 bool DEIPcK::isLinked(IPSTATUS * pStatus)
 {
-    // this is low level stuff that only gets done once.
-    if(_fBegun)
-    {
-        return(LLIsLinked(_pLLAdp, pStatus));
-    }
-
-    return(false);
+    return(_pLLAdp != NULL && LLIsLinked(_pLLAdp, pStatus));
 }
 
 /***	bool DEIPcK::begin(void)
@@ -162,13 +162,6 @@ bool DEIPcK::begin(const IPv4& ip, const IPv4& ipGateway, const IPv4& subnetMask
     // Initialize core stack layers (MAC, ARP, TCP, UDP) and
     // application modules (HTTP, SNMP, etc.)
 
-    //TODO: really think about this; won't this init ALL adaptors and kill other adaptors being used??
-    // where should this be called?
-    IPSInit(NULL, 0, 0);
-  
-    // add the adaptor
-    _pLLAdp = LLAddAdaptor(_pNwAdp, rgbLLARPMem, cbARPMem, NULL);
-
     DNSInit(_pLLAdp, rgbDNSMem, cbDNSMem, hDhcpDnsNtpPMGR, &status);
 
     // if we are not to use DHCP; fill in what came in.
@@ -211,23 +204,66 @@ bool DEIPcK::begin(const IPv4& ip, const IPv4& ipGateway, const IPv4& subnetMask
 */
 bool DEIPcK::end(void)
 {
-    bool fEnded = SNTPv4Terminate(_pLLAdp) && DNSTerminate(_pLLAdp) && DHCPTerminate(_pLLAdp);
-
-    if(fEnded)
+    if(_fBegun == false)
     {
-        TCPAbortAllSockets();
-        UDPCloseAllSockets();
-
-        LLRemoveAdaptor(_pLLAdp);
-        _pLLAdp = NULL;
-
-        _fBegun = false;
-
         return(true);
     }
+    else
+    {
+        bool fEnded = SNTPv4Terminate(_pLLAdp) && DNSTerminate(_pLLAdp) && DHCPTerminate(_pLLAdp);
 
+        if(fEnded)
+        {
+            abortTCPServers();
+            abortUDPServers();
+            TCPAbortAllSockets();
+            UDPCloseAllSockets();
+
+            LLRemoveAdaptor(_pLLAdp);
+            
+            // everything is based on if the LinkLayer adaptor is there
+            _pLLAdp = NULL;
+            
+            // do not do this because after and end
+            // we need to still talk to the hardware for disconnects 
+            // and ip address and stuff like that.
+//            _pNwAdp = NULL;
+
+            _fBegun = false;
+
+            return(true);
+        }
+    }
     return(false);
 }
+
+void DEIPcK::abortTCPServers(void)
+{
+    FFLL *      pffllServer = NULL;
+
+    // look at all of the server objects
+    while((pffllServer = (FFLL *) FFNext(&TCPServer::_ffptPeriodTask, NULL)) != NULL)
+    {
+        TCPServer&  tcpServer = *((TCPServer *) (pffllServer->_this));      // for syntax sake
+        
+        tcpServer.close();
+    }
+}
+
+void DEIPcK::abortUDPServers(void)
+{
+    FFLL *      pffllServer = NULL;
+
+    // look at all of the server objects
+    while((pffllServer = (FFLL *) FFNext(&UDPServer::_ffptPeriodTask, NULL)) != NULL)
+    {
+        UDPServer&  udpServer = *((UDPServer *) (pffllServer->_this));      // for syntax sake
+        
+        udpServer.close();
+    }
+}
+
+
 
 /***	bool DEIPcK::isInitialized(void)
 **      bool DEIPcK::isInitialized(DEIPcK::STATUS * pStatus)
@@ -257,7 +293,7 @@ bool DEIPcK::end(void)
 */
 bool DEIPcK::isIPReady(IPSTATUS * pStatus)
 {
-    return(ILIsIPNetworkReady(_pLLAdp, pStatus));
+    return(_pLLAdp != NULL && ILIsIPNetworkReady(_pLLAdp, pStatus));
 }
  
 /***	unsigned long DEIPcK::secondsSinceEpoch(void)
@@ -329,16 +365,16 @@ unsigned long DEIPcK::secondsSinceEpoch(IPSTATUS * pStatus)
 **
 **  Notes:
 **
-**      This value will not be accruate until the Ethernet and IP Stack is fully initialized 
+**      This value will not be accurate if the MAC/PHY, WiFi Module is not initialized
 **      
 */
 bool DEIPcK::getMyMac(MACADDR& mac)
 {
     // get it set up if not already
-    if(isLinked())
+    if(_pLLAdp != NULL)
     {
         LLGetMyMac(_pLLAdp, &mac);
-        return(true);
+        return(memcmp(&mac, &MACNONE, sizeof(MACADDR)) != 0);
     }
     return(false);
 }

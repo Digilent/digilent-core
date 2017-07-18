@@ -120,8 +120,11 @@ extern "C" {
 #define WIFI_IPC_IS     CAT_5(IPC,WIFI_INT_IPCREG,bits.INT,WF_INT,IS)   // IPCxbits.INTxIS
 
 // set up the SPI macro
+#define SPIFAULTVEC1(a)  _SPI##a##_FAULT_VECTOR 
+#define SPIFAULTVEC(a)  SPIFAULTVEC1(a) 
 #if defined(__PIC32MZ__)
-    #define WF_SPI_VEC      CAT_4(_SP,I,WF_SPI,_FAULT_VECTOR)               // _SPI_x_VECTOR _SPIx_FAULT_VECTOR
+    #define WF_SPI_VEC      SPIFAULTVEC(WF_SPI)               // _SPI_x_VECTOR _SPIx_FAULT_VECTOR
+//    #define WF_SPI_VEC      CAT_4(_SP,I,WF_SPI,_FAULT_VECTOR)               // _SPI_x_VECTOR _SPIx_FAULT_VECTOR
     #define WF_SPI_IRQ      WF_SPI_VEC
 #else
     #define WF_SPI_VEC      CAT_3(_SPI_,WF_SPI,_VECTOR)                     // _SPI_x_VECTOR

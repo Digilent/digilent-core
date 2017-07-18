@@ -96,6 +96,10 @@ static bool IsInitialized(IPSTATUS * pStatus)
     return(wfmrf24.priv.initStatus == (InitMask | WF_INIT_SUCCESSFUL));
 }
 
+
+// Linked means, connected to the network
+// just being initialized is NOT being linked!
+// we must be connected to the AP to be linked
 static bool IsLinked(IPSTATUS * pStatus)
 {
     IPSTATUS    status = wfmrf24.priv.connectionStatus;
@@ -410,8 +414,13 @@ static void WF_PowerStateGetT(uint8_t *p_powerState)
 
 static void MRF24PeriodicTasks(void)
 {
+    IPSTATUS status;
+    
     SendNextIpStack();
-    WF_Task();
+    
+    // if initialization has started, we want to finish
+    IsInitialized(&status);     // this will call WF_Task();)
+//     WF_Task();
 }
 
 WFMRFD wfmrf24 =

@@ -226,7 +226,7 @@ int UDPSocket::peekByte(void)
 }
 int UDPSocket::peekByte(size_t index)
 {
-    byte rgb[1];
+    uint8_t rgb[1];
 
     if(peekDatagram(rgb, sizeof(rgb), index) == 1)
     {
@@ -261,11 +261,11 @@ int UDPSocket::peekByte(size_t index)
 **
 **
 */
-size_t UDPSocket::peekDatagram(byte *rgbPeek, size_t cbPeekMax)
+size_t UDPSocket::peekDatagram(uint8_t *rgbPeek, size_t cbPeekMax)
 {
     return(peekDatagram(rgbPeek, cbPeekMax, 0));
 }
-size_t UDPSocket::peekDatagram(byte *rgbPeek, size_t cbPeekMax, size_t index)
+size_t UDPSocket::peekDatagram(uint8_t *rgbPeek, size_t cbPeekMax, size_t index)
 {
     return(UDPPeekIdx(&_socket, index, rgbPeek, cbPeekMax, NULL));
 }
@@ -289,7 +289,7 @@ size_t UDPSocket::peekDatagram(byte *rgbPeek, size_t cbPeekMax, size_t index)
 **  Notes:
 **
 */
-size_t UDPSocket::readDatagram(byte *rgbRead, size_t cbReadMax)
+size_t UDPSocket::readDatagram(uint8_t *rgbRead, size_t cbReadMax)
 {
     // read the bytes from the cache
     // you must specify an iIndex of 0! Otherwise the I can't remove the bytes
@@ -318,7 +318,7 @@ size_t UDPSocket::readDatagram(byte *rgbRead, size_t cbReadMax)
 **      as a complete datagram.
 **
 */
-long int UDPSocket::writeDatagram(const byte *rgbWrite, size_t cbWrite)
+long int UDPSocket::writeDatagram(const uint8_t *rgbWrite, size_t cbWrite)
 {
     return(UDPSend(&_socket, rgbWrite, cbWrite, NULL));
 }

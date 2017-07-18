@@ -203,7 +203,7 @@ bool RRHPFree(HRRHEAP hHeap, void * pMem)
 
     if(pHeap != NULL && pHeap->rgbHeap <= ((uint8_t *) pMem) && ((uint8_t *) pMem) < (pHeap->rgbHeap + pHeap->cbHeap))
     {
-        RRHE * phpen = (RRHE *) (pMem - sizeof(RRHE));
+        RRHE * phpen = (RRHE *) (((uint8_t *) pMem) - sizeof(RRHE));
         
         if(phpen->fInUse)
         {           

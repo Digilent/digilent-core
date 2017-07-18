@@ -136,7 +136,7 @@ static inline uint16_t __attribute__((always_inline)) unalignedload(volatile voi
 
 uint16_t CalculateChecksum(uint16_t sumComplement, void * pv, unsigned int cb)
 {
-    uint8_t *       pbEnd   = pv + cb;
+    uint8_t *       pbEnd   = ((uint8_t *) pv) + cb;
     uint32_t        sum     = ((uint32_t) (~sumComplement)) & 0x0000FFFF;
 
     if(cb > 0)
@@ -144,7 +144,7 @@ uint16_t CalculateChecksum(uint16_t sumComplement, void * pv, unsigned int cb)
         // make this as short and sweet so the compiler can do the best it can
 //        for(; pv < (void *) (pbEnd-1); pv += sizeof(uint16_t)) sum += *((uint16_t *) pv);         // this faults on unaligned pv
 //        for(; pv < (void *) (pbEnd-1); pv += sizeof(uint16_t)) sum += (uint32_t) (((uint16_t) *((uint8_t *) pv)) | (((uint16_t) *((uint8_t *) pv+1)) << 8));  // works but gens more code than below
-        for(; pv < (void *) (pbEnd-1); pv += sizeof(uint16_t)) sum += unalignedload(pv);
+        for(; pv < (void *) (pbEnd-1); pv = ((uint8_t *) pv) + sizeof(uint16_t)) sum += unalignedload(pv);
 
         // see if we need to pad a zero at the end of the last odd byte; RFC 1071
         // no need to worry about unaligned pv as we deref as a byte only
