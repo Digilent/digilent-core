@@ -891,9 +891,7 @@ void SoftwareSerial::begin(long speed, uint32_t RX_buffer_size)
             // Turn the whole change notification system on
             // Set change notification so CPU idle state does not affect it
             CNCONbits.ON    =   1;
-			#ifndef __PIC32MZEFADC__
             CNCONbits.SIDL  =   0;
-			#endif
 #endif            
             // Mark the ISR as set up so that we don't try to do it again
             SoftwareSerial::_CN_ISR_hooked = true;

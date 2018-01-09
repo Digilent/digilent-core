@@ -2,10 +2,10 @@
 # ------------------------------
 #
 # For more info:
-# https://github.com/someday_we_will_fill_in_this_file_hopefully!
+# https://github.com/Digilent
 
 name=Digilent
-version=1.0.3
+version=1.0.4
 
 # BPS - Not sure if this ever gets used, and if so, how/where
 #rewriting=disabled
