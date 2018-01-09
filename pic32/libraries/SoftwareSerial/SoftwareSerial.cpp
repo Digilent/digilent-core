@@ -696,28 +696,29 @@ void SoftwareSerial::begin(long speed, uint32_t RX_buffer_size)
         CNCONGbits.ON = 1;
     #endif
 
-    #if defined(_PORTA)
-        CNCONAbits.SIDL = 0;
-    #endif
-    #if defined(_PORTB)
-        CNCONBbits.SIDL = 0;
-    #endif
-    #if defined(_PORTC)
-        CNCONCbits.SIDL = 0;
-    #endif
-    #if defined(_PORTD)
-        CNCONDbits.SIDL = 0;
-    #endif
-    #if defined(_PORTE)
-        CNCONEbits.SIDL = 0;
-    #endif
-    #if defined(_PORTF)
-        CNCONFbits.SIDL = 0;
-    #endif
-    #if defined(_PORTG)
-        CNCONGbits.SIDL = 0;
-    #endif
-
+	#ifndef __PIC32MZEFADC__
+		#if defined(_PORTA)
+			CNCONAbits.SIDL = 0;
+		#endif
+		#if defined(_PORTB)
+			CNCONBbits.SIDL = 0;
+		#endif
+		#if defined(_PORTC)
+			CNCONCbits.SIDL = 0;
+		#endif
+		#if defined(_PORTD)
+			CNCONDbits.SIDL = 0;
+		#endif
+		#if defined(_PORTE)
+			CNCONEbits.SIDL = 0;
+		#endif
+		#if defined(_PORTF)
+			CNCONFbits.SIDL = 0;
+		#endif
+		#if defined(_PORTG)
+			CNCONGbits.SIDL = 0;
+		#endif
+	#endif
         // On PPS PIC32s, we just set the proper bit in the proper I/O port's CNEN
         _rxPort->cnen.set = _rxBit;
         // And turn on that port's CN functionality
@@ -890,7 +891,9 @@ void SoftwareSerial::begin(long speed, uint32_t RX_buffer_size)
             // Turn the whole change notification system on
             // Set change notification so CPU idle state does not affect it
             CNCONbits.ON    =   1;
+			#ifndef __PIC32MZEFADC__
             CNCONbits.SIDL  =   0;
+			#endif
 #endif            
             // Mark the ISR as set up so that we don't try to do it again
             SoftwareSerial::_CN_ISR_hooked = true;
